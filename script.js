@@ -38,7 +38,6 @@ const Gameboard = (function() {
             currentPlayer = 0;
             gameOver = false;
             Gameboard.render();
-            console.log(players);
     }
     return {start}
     }) ();

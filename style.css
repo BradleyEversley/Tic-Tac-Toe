@@ -10,6 +10,7 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    background-color: rgb(210, 233, 254);
 }
 
 .board {
@@ -25,8 +26,15 @@ body {
 }
 .player-input {
     width: 300px;
-    height: 30px;
     display: flex;    
+}
+
+#player1, #player2 {
+    height: 40px;
+    font-size: 25px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.143);
+    padding: 5px;
 }
 
 #new-game {
