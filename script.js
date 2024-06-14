@@ -1,7 +1,7 @@
 const newGameButton = document.querySelector("#new-game");
+const restartButton = document.querySelector("#restart-game");
 const player1InputField = document.querySelector("#player1");
 const player2InputField = document.querySelector("#player2");
-
 
 newGameButton.addEventListener("click", () => {
     Game.start();
@@ -10,60 +10,84 @@ newGameButton.addEventListener("click", () => {
     player2InputField.style.display = "none";
 });
 
-// Functions
-/* #region Main */
-function createPlayer(name, symbol){
-    return { name, symbol};
-};
+restartButton.addEventListener("click", () => {
+    Game.restart();
+    console.log(Gameboard.getGameboard());
+});
 
+const createPlayer = (name, symbol) => ({ name, symbol });
 
+const checkWin = (board) => {
+    const winningCombo = [
+        [0, 1, 2], [0, 3, 6], [0, 4, 8],
+        [1, 4, 7], [2, 4, 6], [2, 5, 8],
+        [3, 4, 5], [6, 7, 8]
+    ];
+    return winningCombo.some(([a, b, c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
+}
 
-const Gameboard = (function() {
-    let gameboard = ["", "", "", "", "", "", "", "", "", ];
-    
-    function render() {
-        let boardHTML = "";
-         gameboard.forEach((cell, index) => {
-            boardHTML += `<div class = "cell" id = "cell-${index}">${cell}</div>`
-        })//closes foreach
+const checkTie = (board) => board.every(cell => cell !== "");
 
+const Gameboard = (() => {
+    let gameboard = Array(9).fill("");
+
+    const render = () => {
+        const boardHTML = gameboard.map((cell, index) => `<div class="cell" id="cell-${index}">${cell}</div>`).join("");
         document.querySelector("#gameboard").innerHTML = boardHTML;
-        const cells = document.querySelectorAll(".cell");
-        cells.forEach((cell) => {
+
+        document.querySelectorAll(".cell").forEach(cell => {
             cell.addEventListener("click", Game.handleClick);
-        } )
-    }//closes render
-    function update(index, symbol) {
-        if (gameboard[index] === "") { // Check if cell is empty
+        });
+    };
+
+    const update = (index, symbol, force = false) => {
+        if (force || gameboard[index] === "") {
             gameboard[index] = symbol;
             render();
-            return true; // Update successful
+            return true;
         }
-        return false; // Update unsuccessful
-    }
-    return {render, update}
-})(); //closes Gameboard | Invokes IIFE
+        return false;
+    };
 
- const Game = (function() {
+    const getGameboard = () => gameboard;
+
+    return { render, update, getGameboard };
+})();
+
+const Game = (() => {
     let players = [];
     let currentPlayer;
     let gameOver;
 
-        function start() { // Factory
-            players = 
-            [createPlayer(document.querySelector("#player1").value, "X"), 
-            createPlayer(document.querySelector("#player2").value, "O")];
-            currentPlayer = 0;
-            gameOver = false;
-            Gameboard.render();
-    }
-    const handleClick = (event) => {
-        let index = parseInt(event.target.id.split("-")[1]);
-        if (Gameboard.update(index, players[currentPlayer].symbol)) {
-            currentPlayer = (currentPlayer + 1) % 2; // Switch player
-        }
-    }
+    const start = () => {
+        players = [
+            createPlayer(player1InputField.value, "X"), 
+            createPlayer(player2InputField.value, "O")
+        ];
+        currentPlayer = 0;
+        gameOver = false;
+        Gameboard.render();
+    };
 
-    return { start, handleClick };
+    const handleClick = (event) => {
+        const index = parseInt(event.target.id.split("-")[1]);
+        if (gameOver || !Gameboard.update(index, players[currentPlayer].symbol)) return;
+
+        if (checkWin(Gameboard.getGameboard())) {
+            gameOver = true;
+            alert(`${players[currentPlayer].name} won!`);
+        } else if (checkTie(Gameboard.getGameboard())) {
+            gameOver = true;
+            alert("Draw!");
+        }
+
+        currentPlayer = (currentPlayer + 1) % 2;
+    };
+
+    const restart = () => {
+        Gameboard.getGameboard().forEach((_, index) => Gameboard.update(index, "", true));
+        gameOver = false;
+    };
+
+    return { start, handleClick, restart };
 })();
-/* #endregion */
